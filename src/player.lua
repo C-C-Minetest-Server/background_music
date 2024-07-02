@@ -11,7 +11,7 @@ local logger = _int.logger:sublogger("player")
 ---@type { [string]: { handle: integer, music: string, expire_time: integer } }
 local data = {}
 
-local newjoin_no_bgm = {}
+local play_gap = {}
 
 ---Fade audio of a player
 ---@param name string
@@ -87,24 +87,31 @@ modlib.minetest.register_globalstep(1, function()
     end
 end)
 
+---Set playing gap
+---@param name string
+---@param sec number
+function background_music.set_play_gap(name, sec)
+    play_gap[name] = os.time() + sec
+end
+
 background_music.register_on_decide_music(function(player)
     local name = player:get_player_name()
     local now = os.time()
 
-    if newjoin_no_bgm[name] and newjoin_no_bgm[name] > now then
+    if play_gap[name] and play_gap[name] > now then
         return "null", 10000
     else
-        newjoin_no_bgm[name] = nil
+        play_gap[name] = nil
     end
 end)
 
 minetest.register_on_joinplayer(function(player)
     local name = player:get_player_name()
-    newjoin_no_bgm[name] = os.time() + 2
+    background_music.set_play_gap(name, 2)
 end)
 
 minetest.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     data[name] = nil
-    newjoin_no_bgm[name] = nil
+    play_gap[name] = nil
 end)
