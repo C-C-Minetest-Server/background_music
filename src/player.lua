@@ -83,7 +83,13 @@ function background_music.decide_and_play(player, instant)
         return
     end
 
-    if not(start_play_gap[name] and start_play_gap[name] > os.time()) then
+    if start_play_gap[name] and start_play_gap[name] > os.time() then
+        if data[name] and data[name].music ~= music then
+            logger:action("Stopping music on player %s due to start play gap", name)
+            background_music.fade_player_music(name, instant)
+            return
+        end
+    else
         local spec = background_music.play_for_player(name, music, instant)
         if spec then
             logger:action("Playing %s -> %s on player %s", music, spec.name, name)
