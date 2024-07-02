@@ -11,13 +11,18 @@ local logger = _int.logger:sublogger("player")
 ---@type { [string]: { handle: integer, music: string, expire_time: integer } }
 local data = {}
 
-local play_gap = {}
+local start_play_gap = {}
 
 ---Fade audio of a player
 ---@param name string
-function background_music.fade_player_music(name)
+---@param instant? boolean
+function background_music.fade_player_music(name, instant)
     if data[name] then
-        minetest.sound_fade(data[name].handle, 0.5, 0)
+        if instant then
+            minetest.sound_stop(data[name].handle)
+        else
+            minetest.sound_fade(data[name].handle, 0.5, 0)
+        end
         data[name] = nil
     end
 end
@@ -25,9 +30,10 @@ end
 ---Play music on a player, restart even if it is already playing
 ---@param name string
 ---@param music string
-function background_music.play_for_player_force(name, music)
+---@param instant? boolean
+function background_music.play_for_player_force(name, music, instant)
     local old_idx = data[name] and data[name].spec_idx
-    background_music.fade_player_music(name)
+    background_music.fade_player_music(name, instant)
     if music == "null" then return end
 
     local music_specs = logger:assert(background_music.registered_background_musics[music],
@@ -53,8 +59,9 @@ end
 ---Play music on a player
 ---@param name string
 ---@param music string
+---@param instant? boolean
 ---@return boolean changed
-function background_music.play_for_player(name, music)
+function background_music.play_for_player(name, music, instant)
     if music == "keep" then
         return false
     elseif data[name] then
@@ -62,22 +69,26 @@ function background_music.play_for_player(name, music)
             return false
         end
     end
-    return background_music.play_for_player_force(name, music)
+    return background_music.play_for_player_force(name, music, instant)
 end
 
 ---Decide the music of a player then apply the change
 ---@param player ObjectRef
-function background_music.decide_and_play(player)
+function background_music.decide_and_play(player, instant)
     local music = background_music.get_music_for(player)
     local name = player:get_player_name()
     if music == "null" and data[name] then
         logger:action("Stopping music on player %s", name)
-        background_music.fade_player_music(name)
+        background_music.fade_player_music(name, instant)
         return
     end
-    local spec = background_music.play_for_player(name, music)
-    if spec then
-        logger:action("Playing %s -> %s on player %s", music, spec.name, name)
+
+    if not(start_play_gap[name] and start_play_gap[name] > os.time()) then
+        local spec = background_music.play_for_player(name, music, instant)
+        if spec then
+            logger:action("Playing %s -> %s on player %s", music, spec.name, name)
+        end
+        start_play_gap[name] = nil
     end
 end
 
@@ -90,28 +101,17 @@ end)
 ---Set playing gap
 ---@param name string
 ---@param sec number
-function background_music.set_play_gap(name, sec)
-    play_gap[name] = os.time() + sec
+function background_music.set_start_play_gap(name, sec)
+    start_play_gap[name] = os.time() + sec
 end
-
-background_music.register_on_decide_music(function(player)
-    local name = player:get_player_name()
-    local now = os.time()
-
-    if play_gap[name] and play_gap[name] > now then
-        return "null", 10000
-    else
-        play_gap[name] = nil
-    end
-end)
 
 minetest.register_on_joinplayer(function(player)
     local name = player:get_player_name()
-    background_music.set_play_gap(name, 2)
+    background_music.set_start_play_gap(name, 2)
 end)
 
 minetest.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     data[name] = nil
-    play_gap[name] = nil
+    start_play_gap[name] = nil
 end)
