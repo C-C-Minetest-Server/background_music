@@ -8,7 +8,7 @@ local _int = background_music.internal
 local logger = _int.logger:sublogger("player")
 
 ---Handles returned by `minetest.sound_play`
----@type { [string]: integer }
+---@type { [string]: { handle: integer, music: string, expire_time: integer } }
 local data = {}
 
 ---Fade audio of a player
@@ -25,14 +25,17 @@ end
 ---@param music string
 function background_music.play_for_player_force(name, music)
     background_music.fade_player_music(name)
-    local music_spec = logger:assert(background_music.registered_background_musics[music],
+    if music == "null" then return end
+
+    local music_specs = logger:assert(background_music.registered_background_musics[music],
         "Background music %s not found", music)
+    local music_spec = music_specs[math.random(#music_specs)]
     data[name] = {
         handle = minetest.sound_play(music_spec, {
             to_player = name,
-            loop = true,
         }),
-        music = music
+        music = music,
+        expire_time = os.time() + music_spec.resend_time,
     }
 end
 
@@ -41,8 +44,12 @@ end
 ---@param music string
 ---@return boolean changed
 function background_music.play_for_player(name, music)
-    if music == "keep" or (data[name] and data[name].music == music) then
+    if music == "keep" then
         return false
+    elseif data[name] then
+        if data[name].music == music and data[name].expire_time <= os.time() then
+            return false
+        end
     end
     background_music.play_for_player_force(name, music)
     return true
