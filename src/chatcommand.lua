@@ -5,7 +5,7 @@
 
 local _int = background_music.internal
 local S = _int.S
-local logger = _int.logger:sublogger("decide")
+local logger = _int.logger:sublogger("chatcommand")
 
 minetest.register_chatcommand("toggle_bgm", {
     description = S("Enable or disable background musics"),
@@ -18,6 +18,9 @@ minetest.register_chatcommand("toggle_bgm", {
         local meta = player:get_meta()
         local value = meta:get_int("background_music_disable") == 0
         meta:set_int("background_music_disable", value and 1 or 0)
+
+        logger:action("%s %s background music", name,
+            value and "enabled" or "disabled")
 
         return true, value
             and S("Successfully enabled background music")
