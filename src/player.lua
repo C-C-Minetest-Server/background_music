@@ -11,6 +11,8 @@ local logger = _int.logger:sublogger("player")
 ---@type { [string]: { handle: integer, music: string, expire_time: integer } }
 local data = {}
 
+local newjoin_no_bgm = {}
+
 ---Fade audio of a player
 ---@param name string
 function background_music.fade_player_music(name)
@@ -32,7 +34,7 @@ function background_music.play_for_player_force(name, music)
         "Background music %s not found", music)
     local spec_idx = math.random(#music_specs)
     if #music_specs > 1 then
-        while spec_idx ~= old_idx do
+        while spec_idx == old_idx do
             spec_idx = math.random(#music_specs)
         end
     end
@@ -43,8 +45,9 @@ function background_music.play_for_player_force(name, music)
         }),
         music = music,
         spec_idx = spec_idx,
-        expire_time = os.time() + music_spec.resend_time + 3,
+        expire_time = os.time() + music_spec.resend_time + 2,
     }
+    return music_spec
 end
 
 ---Play music on a player
@@ -55,12 +58,11 @@ function background_music.play_for_player(name, music)
     if music == "keep" then
         return false
     elseif data[name] then
-        if data[name].music == music and data[name].expire_time <= os.time() then
+        if data[name].music == music and data[name].expire_time > os.time() then
             return false
         end
     end
-    background_music.play_for_player_force(name, music)
-    return true
+    return background_music.play_for_player_force(name, music)
 end
 
 ---Decide the music of a player then apply the change
@@ -68,8 +70,9 @@ end
 function background_music.decide_and_play(player)
     local music = background_music.get_music_for(player)
     local name = player:get_player_name()
-    if background_music.play_for_player(name, music) then
-        logger:action("Playing %s on player %s", music, name)
+    local spec = background_music.play_for_player(name, music)
+    if spec then
+        logger:action("Playing %s -> %s on player %s", music, spec.name, name)
     end
 end
 
@@ -79,6 +82,24 @@ modlib.minetest.register_globalstep(1, function()
     end
 end)
 
+background_music.register_on_decide_music(function(player)
+    local name = player:get_player_name()
+    local now = os.time()
+
+    if newjoin_no_bgm[name] and newjoin_no_bgm[name] > now then
+        return "null", 10000
+    else
+        newjoin_no_bgm[name] = nil
+    end
+end)
+
+minetest.register_on_joinplayer(function(player)
+    local name = player:get_player_name()
+    newjoin_no_bgm[name] = os.time() + 2
+end)
+
 minetest.register_on_leaveplayer(function(player)
-    data[player:get_player_name()] = nil
+    local name = player:get_player_name()
+    data[name] = nil
+    newjoin_no_bgm[name] = nil
 end)

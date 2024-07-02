@@ -33,14 +33,16 @@ function background_music.get_music_for(player)
         if music then
             logger:assert(type(music) == "string",
                 "Bad returned background music name type (expected string, got %s)", type(music))
-            logger:assert(background_music.registered_background_musics[music],
+            logger:assert(
+                background_music.registered_background_musics[music]
+                or background_music.reserved_names[music],
                 "Background music %s does not exist", music)
 
             if priority == nil then
                 priority = 0
             end
             ---@cast priority number
-            logging:assert(type(priority) == "number",
+            logger:assert(type(priority) == "number",
                 "Bad returned priority type (expected string, got %s)", type(music))
             results[#results+1] = { music, priority }
         end

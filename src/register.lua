@@ -18,8 +18,7 @@ local logger = _int.logger:sublogger("register")
 ---@type { [string]: background_music.XSimpleSoundSpec[] }
 background_music.registered_background_musics = {}
 
----@enum (keys) background_music.ResevredNames
-local reserved_names = {
+background_music.reserved_names = {
     null = true, -- Stop playing any musics
     keep = true, -- Keep playing the current music
 }
@@ -30,7 +29,7 @@ local reserved_names = {
 function background_music.register_music(name, specs)
     logger:assert(type(name) == "string",
         "Bad background music name type (expected string, got %s)", type(name))
-    logger:assert(not reserved_names[name],
+    logger:assert(not background_music.reserved_names[name],
         "Attempt to override reserved background music name \"%s\"", name)
     background_music.registered_background_musics[name] = specs
 end
