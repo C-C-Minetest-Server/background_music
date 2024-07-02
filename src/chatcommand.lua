@@ -16,8 +16,8 @@ minetest.register_chatcommand("toggle_bgm", {
         end
 
         local meta = player:get_meta()
-        local value = meta:get_int("background_music_disable") == 0
-        meta:set_int("background_music_disable", value and 1 or 0)
+        local value = meta:get_int("background_music_disable") == 1
+        meta:set_int("background_music_disable", value and 0 or 1)
 
         logger:action("%s %s background music", name,
             value and "enabled" or "disabled")
