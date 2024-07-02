@@ -70,7 +70,7 @@ end
 function background_music.decide_and_play(player)
     local music = background_music.get_music_for(player)
     local name = player:get_player_name()
-    if music == "null" and not data[name] then
+    if music == "null" and data[name] then
         logger:action("Stopping music on player %s", name)
         background_music.fade_player_music(name)
         return
