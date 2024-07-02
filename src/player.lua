@@ -24,18 +24,26 @@ end
 ---@param name string
 ---@param music string
 function background_music.play_for_player_force(name, music)
+    local old_idx = data[name] and data[name].spec_idx
     background_music.fade_player_music(name)
     if music == "null" then return end
 
     local music_specs = logger:assert(background_music.registered_background_musics[music],
         "Background music %s not found", music)
-    local music_spec = music_specs[math.random(#music_specs)]
+    local spec_idx = math.random(#music_specs)
+    if #music_specs > 1 then
+        while spec_idx ~= old_idx do
+            spec_idx = math.random(#music_specs)
+        end
+    end
+    local music_spec = music_specs[spec_idx]
     data[name] = {
         handle = minetest.sound_play(music_spec, {
             to_player = name,
         }),
         music = music,
-        expire_time = os.time() + music_spec.resend_time,
+        spec_idx = spec_idx,
+        expire_time = os.time() + music_spec.resend_time + 3,
     }
 end
 
