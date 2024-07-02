@@ -5,6 +5,7 @@
 
 background_music = {}
 background_music.internal = {}
+background_music.internal.S = minetest.get_translator("background_music")
 background_music.internal.logger = logging.logger("background_music")
 
 local MP = minetest.get_modpath("background_music")
@@ -12,7 +13,7 @@ for _, name in ipairs({
     "register",
     "decide", -- depends: register
     "player", -- depends: register, decide
-    "utils",
+    "chatcommand",
 }) do
     dofile(table.concat({ MP, "src", name .. ".lua" }, DIR_DELIM))
 end
