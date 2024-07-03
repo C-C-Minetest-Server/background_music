@@ -29,7 +29,7 @@ function background_music.fade_player_music(name, instant)
         if instant then
             minetest.sound_stop(data[name].handle)
         else
-            minetest.sound_fade(data[name].handle, 0.5, 0)
+            minetest.sound_fade(data[name].handle, 0.2, 0)
         end
         data[name] = nil
     end
