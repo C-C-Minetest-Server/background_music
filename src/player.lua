@@ -102,6 +102,11 @@ function background_music.decide_and_play(player, instant)
         return
     end
 
+    if data[name].music ~= music then
+        -- Changing music, give it a gap
+        background_music.set_start_play_gap(name, 2)
+    end
+
     if start_play_gap[name] and start_play_gap[name] > os.time() then
         if data[name] and data[name].music ~= music then
             logger:action("Stopping music on player %s due to start play gap", name)
