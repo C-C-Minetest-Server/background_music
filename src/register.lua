@@ -13,6 +13,7 @@ local logger = _int.logger:sublogger("register")
 ---@field pitch? number
 ---@field gain? number
 ---@field resend_time number Approximate playback duration in seconds.
+---@field avaliable_to? fun(name: string): boolean Whether a song is avaliable to a player. Checked on start.
 
 ---Table of registered background musics
 ---@type { [string]: background_music.XSimpleSoundSpec[] }

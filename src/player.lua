@@ -13,6 +13,14 @@ local data = {}
 
 local start_play_gap = {}
 
+---Get current music of a player
+---@param name steing
+---@return string? music
+function background_music.get_current_music(name)
+    if not data[name] then return end
+    return data[name].music
+end
+
 ---Fade audio of a player
 ---@param name string
 ---@param instant? boolean
@@ -38,10 +46,21 @@ function background_music.play_for_player_force(name, music, instant)
 
     local music_specs = logger:assert(background_music.registered_background_musics[music],
         "Background music %s not found", music)
-    local spec_idx = math.random(#music_specs)
-    if #music_specs > 1 then
+
+    local avaliable_idx = {}
+    for i, spec in ipairs(music_specs) do
+        local avaliable = true
+        if spec.avaliable_to then
+            avaliable = spec.avaliable_to(name)
+        end
+        if avaliable then
+            avaliable_idx[#avaliable_idx+1] = i
+        end
+    end
+    local spec_idx = avaliable_idx[math.random(#avaliable_idx)]
+    if #avaliable_idx ~= 1 then
         while spec_idx == old_idx do
-            spec_idx = math.random(#music_specs)
+            spec_idx = avaliable_idx[math.random(#avaliable_idx)]
         end
     end
     local music_spec = music_specs[spec_idx]
