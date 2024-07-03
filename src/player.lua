@@ -102,7 +102,7 @@ function background_music.decide_and_play(player, instant)
         return
     end
 
-    if data[name].music ~= music then
+    if data[name] and data[name].music ~= music then
         -- Changing music, give it a gap
         background_music.set_start_play_gap(name, 2)
     end
