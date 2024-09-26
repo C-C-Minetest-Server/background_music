@@ -30,14 +30,14 @@ end
 ---@param name string
 ---@param instant? boolean
 function background_music.fade_player_music(name, instant)
-    if data[name] then
+    if data[name] and data[name].handle then
         if instant then
             minetest.sound_stop(data[name].handle)
         else
             minetest.sound_fade(data[name].handle, 0.2, 0)
         end
-        data[name] = nil
     end
+    data[name] = nil
 end
 
 ---Play music on a player, restart even if it is already playing
