@@ -48,7 +48,7 @@ minetest.register_chatcommand("force2bgm", {
             return false, S("Background music @1 does not exist.", bgm)
         end
 
-        if target == "null" then
+        if bgm == "null" then
             force2bgm[target] = nil
             return true, S("Successfully lifted force2bgm for @1.", target)
         end
@@ -69,6 +69,6 @@ background_music.register_on_decide_music(function(player)
     end
     local name = player:get_player_name()
     if force2bgm[name] then
-        return force2bgm[name]
+        return force2bgm[name], math.huge
     end
 end)
