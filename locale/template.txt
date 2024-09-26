@@ -1,0 +1,12 @@
+# textdomain: background_music
+
+##[ src/chatcommand.lua ]##
+Enable or disable background musics=
+You must be online to use this.=
+Successfully enabled background music=
+Successfully disabled background music=
+Force a player (or yourself) to a BGM=
+Player @1 is not online.=
+Background music @1 does not exist.=
+Successfully lifted force2bgm for @1.=
+Successfully set background music of @1 to @2.=

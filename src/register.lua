@@ -32,5 +32,25 @@ function background_music.register_music(name, specs)
         "Bad background music name type (expected string, got %s)", type(name))
     logger:assert(not background_music.reserved_names[name],
         "Attempt to override reserved background music name \"%s\"", name)
+    for _, spec in ipairs(specs) do
+        if spec.file then
+            local file = io.open(spec.file, "rb")
+            logger:assert(file,
+                ("Validation of song %s failed: invalid `filepath` field value " ..
+                    "(File \"%s\" not found)"):format(
+                    name, spec.file
+                )
+            )
+            file:close()
+            local filename = spec.file:match("[^/]*.ogg$")
+            assert(filename,
+                ("Validation of song %s failed: invalid `filepath` field value " ..
+                    "(File \"%s\" does not end with .ogg)"):format(
+                    name, spec.file
+                )
+            )
+            spec.name = filename:sub(1, #filename - 4)
+        end
+    end
     background_music.registered_background_musics[name] = specs
 end

@@ -11,6 +11,11 @@ local logger = _int.logger:sublogger("player")
 ---@type { [string]: { handle: integer, music: string, expire_time: integer } }
 local data = {}
 
+---Whether a file is sent to a player.
+---player name -> filename -> boolean
+---@type { [string]: { [string]: boolean } }
+local async_sent = {}
+
 local start_play_gap = {}
 
 ---Get current music of a player
@@ -64,14 +69,30 @@ function background_music.play_for_player_force(name, music, instant)
         end
     end
     local music_spec = music_specs[spec_idx]
-    data[name] = {
-        handle = minetest.sound_play(music_spec, {
-            to_player = name,
-        }),
+    local new_data = {
         music = music,
         spec_idx = spec_idx,
-        expire_time = os.time() + music_spec.resend_time + 2,
     }
+    if not music_spec.file or (async_sent[name] and async_sent[name][music_spec.file]) then
+        new_data.handle = minetest.sound_play(music_spec, {
+            to_player = name,
+        })
+        new_data.expire_time = os.time() + music_spec.resend_time + 2
+    else
+        async_sent[name] = async_sent[name] or {}
+        minetest.dynamic_add_media({
+            filepath = music_spec.file,
+            to_player = name,
+        }, function()
+            if not async_sent[name] then return end
+            async_sent[name][music_spec.file] = true
+            new_data.handle = minetest.sound_play(music_spec, {
+                to_player = name,
+            })
+            new_data.expire_time = os.time() + music_spec.resend_time + 2
+        end)
+    end
+    data[name] = new_data
     return music_spec
 end
 
@@ -84,7 +105,7 @@ function background_music.play_for_player(name, music, instant)
     if music == "keep" then
         return false
     elseif data[name] then
-        if data[name].music == music and data[name].expire_time > os.time() then
+        if data[name].music == music and (data[name].expire_time == nil or data[name].expire_time > os.time()) then
             return false
         end
     end
@@ -144,4 +165,5 @@ minetest.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     data[name] = nil
     start_play_gap[name] = nil
+    async_sent[name] = nil
 end)
