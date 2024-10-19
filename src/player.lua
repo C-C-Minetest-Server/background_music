@@ -59,7 +59,7 @@ function background_music.play_for_player_force(name, music, instant)
             avaliable = spec.avaliable_to(name)
         end
         if avaliable then
-            avaliable_idx[#avaliable_idx+1] = i
+            avaliable_idx[#avaliable_idx + 1] = i
         end
     end
     local spec_idx = avaliable_idx[math.random(#avaliable_idx)]
@@ -86,6 +86,7 @@ function background_music.play_for_player_force(name, music, instant)
         }, function()
             if not async_sent[name] then return end
             async_sent[name][music_spec.file] = true
+            if new_data.music ~= music then return end
             new_data.handle = minetest.sound_play(music_spec, {
                 to_player = name,
             })
