@@ -86,7 +86,8 @@ function background_music.play_for_player_force(name, music, instant)
         }, function()
             if not async_sent[name] then return end
             async_sent[name][music_spec.file] = true
-            if new_data.music ~= music or new_data.spec_idx ~= spec_idx then return end
+            local current_data = data[name]
+            if current_data.music ~= music or current_data.spec_idx ~= spec_idx then return end
             new_data.handle = minetest.sound_play(music_spec, {
                 to_player = name,
             })
