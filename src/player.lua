@@ -8,7 +8,7 @@ local _int = background_music.internal
 local logger = _int.logger:sublogger("player")
 
 ---Handles returned by `minetest.sound_play`
----@type { [string]: { handle: integer, music: string, expire_time: integer } }
+---@type { [string]: { handle: integer, music: string, spec_idx: integer, expire_time: integer } }
 local data = {}
 
 ---Whether a file is sent to a player.
@@ -21,9 +21,10 @@ local start_play_gap = {}
 ---Get current music of a player
 ---@param name steing
 ---@return string? music
+---@return integer? spec_idx
 function background_music.get_current_music(name)
     if not data[name] then return end
-    return data[name].music
+    return data[name].music, data[name].spec_idx
 end
 
 ---Fade audio of a player

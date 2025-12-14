@@ -7,6 +7,8 @@ local _int = background_music.internal
 local S = _int.S
 local logger = _int.logger:sublogger("chatcommand")
 
+local SEP = core.get_color_escape_sequence("#FFFFFF")
+
 minetest.register_chatcommand("toggle_bgm", {
     description = S("Enable or disable background musics"),
     func = function(name)
@@ -72,3 +74,32 @@ background_music.register_on_decide_music(function(player)
         return force2bgm[name], math.huge
     end
 end)
+
+minetest.register_chatcommand("bgm_info", {
+    description = S("Get attribution information of current background music"),
+    func = function(name)
+        local music, spec_idx = background_music.get_current_music(name)
+        if not music then
+            return true, S("No background music is playing currently.")
+        end
+
+        local specs = background_music.registered_background_musics[music]
+        if not specs then
+            return true, S("Current background music is invalid.")
+        end
+
+        local spec = specs[spec_idx] or specs[1]
+        local title = spec.title or nil
+        local author = spec.author or S("Unknown Artist")
+        local author_link = spec.author_link
+        local license = spec.license
+        local license_link = spec.license_link
+
+        return true, table.concat({
+            S("Current Background Music:"),
+            S("Title: @1", title and S("@1 (@2)", title, music .. "#" .. spec_idx) or (music .. "#" .. spec_idx)),
+            S("Artist: @1", author_link and (author .. " " .. author_link) or author),
+            license and S("License: @1", license_link and (license .. " " .. license_link) or license) or nil,
+        }, "\n")
+    end,
+})
